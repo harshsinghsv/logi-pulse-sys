@@ -1,0 +1,65 @@
+[
+  {
+    "scenario_name": "Wagon Shortage",
+    "description": "20% reduction in available wagons due to maintenance issues",
+    "before_kpis": {
+      "cost": 1500000,
+      "utilization": 75,
+      "on_time": 80,
+      "delivery_time": 72
+    },
+    "after_kpis": {
+      "cost": 1350000,
+      "utilization": 96,
+      "on_time": 95,
+      "delivery_time": 58
+    },
+    "recommendations": [
+      "Switch 15% of short-haul orders to road transport",
+      "Prioritize high-tonnage orders for available rakes",
+      "Delay non-critical orders by 24-48 hours"
+    ]
+  },
+  {
+    "scenario_name": "Port Congestion",
+    "description": "Major port congestion affecting 30% of coastal deliveries",
+    "before_kpis": {
+      "cost": 1200000,
+      "utilization": 85,
+      "on_time": 70,
+      "delivery_time": 96
+    },
+    "after_kpis": {
+      "cost": 1180000,
+      "utilization": 92,
+      "on_time": 85,
+      "delivery_time": 78
+    },
+    "recommendations": [
+      "Redirect coastal orders to inland routes",
+      "Increase buffer time for port deliveries",
+      "Use alternate ports where feasible"
+    ]
+  },
+  {
+    "scenario_name": "Urgent Order Surge",
+    "description": "40% increase in critical priority orders",
+    "before_kpis": {
+      "cost": 1300000,
+      "utilization": 88,
+      "on_time": 85,
+      "delivery_time": 65
+    },
+    "after_kpis": {
+      "cost": 1450000,
+      "utilization": 94,
+      "on_time": 92,
+      "delivery_time": 48
+    },
+    "recommendations": [
+      "Reserve 20% of rake capacity for urgent orders",
+      "Implement dynamic priority scoring",
+      "Use road transport for small urgent orders"
+    ]
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "rake_id": "BKSC-042",
+    "plant": "Bokaro",
+    "destination": "Patna, Gaya",
+    "status": "Approved",
+    "wagon_type": "BOXN",
+    "wagon_count": 58,
+    "total_tonnage": 3950,
+    "utilization": 98,
+    "efficiency_score": 98,
+    "co2_emissions_kg": 5500,
+    "eta": "2025-10-05T18:00:00Z",
+    "assigned_orders": ["ORD-001", "ORD-005"]
+  },
+  {
+    "rake_id": "BHSC-028",
+    "plant": "Bhilai",
+    "destination": "Mumbai, Pune",
+    "status": "In-Transit",
+    "wagon_type": "BOXN",
+    "wagon_count": 58,
+    "total_tonnage": 3890,
+    "utilization": 96,
+    "efficiency_score": 95,
+    "co2_emissions_kg": 5800,
+    "eta": "2025-10-04T14:30:00Z",
+    "assigned_orders": ["ORD-002", "ORD-008"]
+  },
+  {
+    "rake_id": "RKSC-156",
+    "plant": "Rourkela",
+    "destination": "Delhi, Chandigarh",
+    "status": "Pending",
+    "wagon_type": "BCN",
+    "wagon_count": 45,
+    "total_tonnage": 2890,
+    "utilization": 94,
+    "efficiency_score": 92,
+    "co2_emissions_kg": 4200,
+    "eta": "2025-10-06T10:15:00Z",
+    "assigned_orders": ["ORD-003", "ORD-007"]
+  },
+  {
+    "rake_id": "BKSC-067",
+    "plant": "Bokaro",
+    "destination": "Kolkata, Bhubaneswar",
+    "status": "Approved",
+    "wagon_type": "BOXN",
+    "wagon_count": 58,
+    "total_tonnage": 4020,
+    "utilization": 99,
+    "efficiency_score": 99,
+    "co2_emissions_kg": 5200,
+    "eta": "2025-10-07T16:45:00Z",
+    "assigned_orders": ["ORD-004", "ORD-009"]
+  }
+]

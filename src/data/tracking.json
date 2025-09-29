@@ -1,0 +1,45 @@
+[
+  {
+    "id": "BKSC-042",
+    "type": "Rake",
+    "location": "Gaya Junction",
+    "next_stop": "Patna",
+    "eta": "2025-10-05T18:00:00Z",
+    "status": "On Time",
+    "coordinates": [24.7969, 84.9995],
+    "progress": [
+      {"station": "Bokaro", "status": "Completed", "time": "2025-10-04T10:00:00Z"},
+      {"station": "Dhanbad", "status": "Completed", "time": "2025-10-04T14:30:00Z"},
+      {"station": "Gaya Junction", "status": "Current", "time": "2025-10-05T12:00:00Z"},
+      {"station": "Patna", "status": "Pending", "time": "2025-10-05T18:00:00Z"}
+    ]
+  },
+  {
+    "id": "BHSC-028",
+    "type": "Rake",
+    "location": "Nagpur Junction",
+    "next_stop": "Mumbai CST",
+    "eta": "2025-10-04T14:30:00Z",
+    "status": "Delayed",
+    "coordinates": [21.1458, 79.0882],
+    "progress": [
+      {"station": "Bhilai", "status": "Completed", "time": "2025-10-03T08:00:00Z"},
+      {"station": "Nagpur Junction", "status": "Current", "time": "2025-10-04T10:00:00Z"},
+      {"station": "Mumbai CST", "status": "Pending", "time": "2025-10-04T16:30:00Z"}
+    ]
+  },
+  {
+    "id": "TRK-001",
+    "type": "Truck",
+    "location": "Raipur Highway",
+    "next_stop": "Delhi",
+    "eta": "2025-10-02T20:00:00Z",
+    "status": "On Time",
+    "coordinates": [21.2514, 81.6296],
+    "progress": [
+      {"station": "Rourkela", "status": "Completed", "time": "2025-10-01T14:00:00Z"},
+      {"station": "Raipur", "status": "Current", "time": "2025-10-02T08:00:00Z"},
+      {"station": "Delhi", "status": "Pending", "time": "2025-10-02T20:00:00Z"}
+    ]
+  }
+]

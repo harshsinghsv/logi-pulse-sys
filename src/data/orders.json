@@ -1,0 +1,74 @@
+[
+  {
+    "order_id": "ORD-001",
+    "customer_name": "Bihar CMO",
+    "product": "TMT Bars",
+    "tonnage": 1200,
+    "priority": "High",
+    "is_urgent": true,
+    "deadline": "2025-10-02T23:59:59Z",
+    "status": "In-Transit",
+    "assigned_rake": "BKSC-042",
+    "plant": "Bokaro"
+  },
+  {
+    "order_id": "ORD-002",
+    "customer_name": "Maharashtra Steel Co.",
+    "product": "HR Coils",
+    "tonnage": 2100,
+    "priority": "Medium",
+    "is_urgent": false,
+    "deadline": "2025-10-08T23:59:59Z",
+    "status": "In-Transit",
+    "assigned_rake": "BHSC-028",
+    "plant": "Bhilai"
+  },
+  {
+    "order_id": "ORD-003",
+    "customer_name": "Delhi Infrastructure",
+    "product": "Rails",
+    "tonnage": 1800,
+    "priority": "High",
+    "is_urgent": false,
+    "deadline": "2025-10-10T23:59:59Z",
+    "status": "Planning",
+    "assigned_rake": "RKSC-156",
+    "plant": "Rourkela"
+  },
+  {
+    "order_id": "ORD-004",
+    "customer_name": "East Zone Railways",
+    "product": "Rails",
+    "tonnage": 2200,
+    "priority": "Critical",
+    "is_urgent": true,
+    "deadline": "2025-10-05T23:59:59Z",
+    "status": "Planning",
+    "assigned_rake": "BKSC-067",
+    "plant": "Bokaro"
+  },
+  {
+    "order_id": "ORD-005",
+    "customer_name": "Bihar Power Grid",
+    "product": "Structural Steel",
+    "tonnage": 950,
+    "priority": "Medium",
+    "is_urgent": false,
+    "deadline": "2025-10-12T23:59:59Z",
+    "status": "In-Transit",
+    "assigned_rake": "BKSC-042",
+    "plant": "Bokaro"
+  },
+  {
+    "order_id": "ORD-006",
+    "customer_name": "Gujarat Steel Works",
+    "product": "Wire Rods",
+    "tonnage": 1450,
+    "priority": "Low",
+    "is_urgent": false,
+    "deadline": "2025-10-15T23:59:59Z",
+    "status": "Pending",
+    "assigned_rake": null,
+    "plant": "Bhilai"
+  }
+]

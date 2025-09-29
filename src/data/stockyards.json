@@ -1,0 +1,42 @@
+[
+  {
+    "id": "SK-BOK",
+    "name": "Bokaro Steel Plant",
+    "status": "Optimal",
+    "capacity_percent": 75,
+    "available_tonnage": 12000,
+    "rakes_loading": 2,
+    "location": "Bokaro, Jharkhand",
+    "ai_suggestion": "Optimal loading point for high-priority orders due to low congestion"
+  },
+  {
+    "id": "SK-BHI",
+    "name": "Bhilai Steel Plant",
+    "status": "Busy",
+    "capacity_percent": 88,
+    "available_tonnage": 8500,
+    "rakes_loading": 4,
+    "location": "Bhilai, Chhattisgarh",
+    "ai_suggestion": "Consider alternate loading points for non-urgent orders"
+  },
+  {
+    "id": "SK-RKL",
+    "name": "Rourkela Steel Plant", 
+    "status": "At Capacity",
+    "capacity_percent": 95,
+    "available_tonnage": 3200,
+    "rakes_loading": 6,
+    "location": "Rourkela, Odisha",
+    "ai_suggestion": "High congestion detected. Delay non-critical orders by 2-3 hours"
+  },
+  {
+    "id": "SK-DSP",
+    "name": "Durgapur Steel Plant",
+    "status": "Optimal",
+    "capacity_percent": 65,
+    "available_tonnage": 15000,
+    "rakes_loading": 1,
+    "location": "Durgapur, West Bengal",
+    "ai_suggestion": "Excellent capacity available for immediate dispatch"
+  }
+]

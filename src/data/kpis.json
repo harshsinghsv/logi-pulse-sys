@@ -1,0 +1,28 @@
+{
+  "total_orders_today": 124,
+  "rakes_formed": 14,
+  "sla_at_risk_percent": 8,
+  "avg_rake_utilization": 96,
+  "idle_wagons": 78,
+  "total_optimized_cost": 12000000,
+  "cost_change_percent": -15,
+  "on_time_delivery": 96,
+  "dispatched_today": 14,
+  "logistics_cost_trend": [
+    { "date": "2025-09-20", "cost": 1400000, "utilization": 92 },
+    { "date": "2025-09-21", "cost": 1350000, "utilization": 94 },
+    { "date": "2025-09-22", "cost": 1300000, "utilization": 95 },
+    { "date": "2025-09-23", "cost": 1250000, "utilization": 96 },
+    { "date": "2025-09-24", "cost": 1200000, "utilization": 97 },
+    { "date": "2025-09-25", "cost": 1180000, "utilization": 98 },
+    { "date": "2025-09-26", "cost": 1150000, "utilization": 97 },
+    { "date": "2025-09-27", "cost": 1120000, "utilization": 96 },
+    { "date": "2025-09-28", "cost": 1100000, "utilization": 98 },
+    { "date": "2025-09-29", "cost": 1080000, "utilization": 96 }
+  ],
+  "orders_by_plant": [
+    { "plant": "Bokaro", "orders": 45, "value": 4500000 },
+    { "plant": "Bhilai", "orders": 38, "value": 3800000 },
+    { "plant": "Rourkela", "orders": 41, "value": 4100000 }
+  ]
+}

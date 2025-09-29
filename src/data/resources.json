@@ -1,0 +1,15 @@
+{
+  "wagons": [
+    {"type": "BOXN", "total": 200, "available": 150, "maintenance": 20, "in_use": 30},
+    {"type": "BCN", "total": 100, "available": 80, "maintenance": 10, "in_use": 10},
+    {"type": "BOBR", "total": 50, "available": 35, "maintenance": 5, "in_use": 10},
+    {"type": "BRN", "total": 75, "available": 60, "maintenance": 8, "in_use": 7}
+  ],
+  "loading_points": [
+    {"id": "LP-A1", "status": "Busy", "current_rake": "BKSC-042", "estimated_free": "2025-10-01T14:00:00Z"},
+    {"id": "LP-A2", "status": "Available", "current_rake": null, "estimated_free": null},
+    {"id": "LP-B1", "status": "Busy", "current_rake": "BHSC-028", "estimated_free": "2025-10-01T16:30:00Z"},
+    {"id": "LP-B2", "status": "Available", "current_rake": null, "estimated_free": null},
+    {"id": "LP-C1", "status": "Maintenance", "current_rake": null, "estimated_free": "2025-10-02T08:00:00Z"}
+  ]
+}
