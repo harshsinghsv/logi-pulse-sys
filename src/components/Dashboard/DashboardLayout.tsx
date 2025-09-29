@@ -61,7 +61,7 @@ const DashboardLayout = () => {
                 exit={{ opacity: 0 }}
                 className="text-xl font-bold bg-gradient-steel bg-clip-text text-transparent"
               >
-                RakeOptima
+                SAIL Sahayak
               </motion.div>
             )}
             <Button
@@ -148,7 +148,7 @@ const DashboardLayout = () => {
               {/* Mobile Sidebar Header */}
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="text-xl font-bold bg-gradient-steel bg-clip-text text-transparent">
-                  RakeOptima
+                  SAIL Sahayak
                 </div>
                 <Button
                   variant="ghost"

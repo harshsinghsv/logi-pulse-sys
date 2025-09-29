@@ -64,32 +64,32 @@ const LandingPage = () => {
     {
       icon: Brain,
       title: "AI-Powered Rake Formation",
-      description: "Smartly clubs orders to maximize wagon space utilization up to 98%."
+      description: "Intelligent order clubbing with machine learning algorithms to achieve 98%+ wagon utilization and minimize empty runs."
     },
     {
       icon: MapPin,
       title: "Stockyard & Loading Point Optimization",
-      description: "Dynamically selects the most cost-effective stockyard and loading point."
+      description: "Real-time analysis of stockyard capacity and loading point availability to minimize demurrage costs."
     },
     {
       icon: Truck,
       title: "Dynamic Mode Selection (Rail vs. Road)",
-      description: "Automatically suggests truck transport for small, urgent orders to avoid rake delays."
+      description: "Smart modal choice optimization balancing cost, time, and environmental impact for each shipment."
     },
     {
       icon: Target,
       title: "AI-Based Order Prioritization",
-      description: "Ensures high-priority orders are dispatched first to meet critical SLAs."
+      description: "Advanced priority scoring considering customer importance, deadline urgency, and strategic value."
     },
     {
       icon: Eye,
       title: "Real-Time Tracking & Visibility",
-      description: "A unified dashboard view of all assets in transit."
+      description: "Live GPS tracking with predictive ETA updates and automated exception alerts for proactive management."
     },
     {
       icon: Zap,
-      title: "Unique Differentiators",
-      description: "What-if Simulation, Carbon Footprint Tracking, and Predictive Delay Alerts."
+      title: "Advanced Analytics & Simulation",
+      description: "What-if scenario modeling, carbon footprint optimization, and predictive maintenance scheduling."
     }
   ];
 
@@ -97,27 +97,27 @@ const LandingPage = () => {
     {
       step: "1",
       title: "Data Ingest",
-      description: "System aggregates data on orders, inventory, and wagons."
+      description: "Real-time integration with ERP systems, IoT sensors, and external logistics partners for comprehensive data collection."
     },
     {
       step: "2", 
       title: "AI Optimizer",
-      description: "Our core engine processes constraints and finds the optimal plan."
+      description: "Advanced machine learning algorithms process multiple constraints including capacity, priority, cost, and environmental factors."
     },
     {
       step: "3",
       title: "Daily Plan Generation",
-      description: "The system outputs a clear, actionable dispatch schedule."
+      description: "Automated generation of optimized rake formation plans with detailed loading sequences and resource allocation."
     },
     {
       step: "4",
       title: "Simulation & Validation", 
-      description: "Planners can run what-if scenarios to test resilience."
+      description: "Interactive scenario modeling allows planners to test different strategies and validate plans before execution."
     },
     {
       step: "5",
       title: "Dashboard Visualization",
-      description: "All insights are displayed on an easy-to-use dashboard."
+      description: "Intuitive control tower interface with real-time KPIs, alerts, and actionable insights for decision makers."
     }
   ];
 
@@ -139,7 +139,7 @@ const LandingPage = () => {
       >
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold bg-gradient-steel bg-clip-text text-transparent">
-            RakeOptima
+            SAIL Sahayak
           </div>
           <nav className="hidden md:flex space-x-6">
             <button 
@@ -192,7 +192,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl md:text-6xl font-bold mb-6"
           >
-            AI-Powered Rake Formation Optimization for SAIL
+            SAIL Sahayak: AI-Powered Logistics Control Tower
           </motion.h1>
           <motion.p 
             initial={{ y: 50, opacity: 0 }}
@@ -200,7 +200,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl mb-8 text-gray-100 max-w-4xl mx-auto"
           >
-            Smarter logistics, lower costs, and on-time deliveries powered by our intelligent Decision Support System.
+            Transform SAIL's logistics operations with intelligent rake formation, real-time tracking, and predictive optimization for maximum efficiency.
           </motion.p>
           <motion.div 
             initial={{ y: 50, opacity: 0 }}
@@ -279,12 +279,12 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4 text-lg px-6 py-2 bg-primary text-primary-foreground">
+            <Badge className="mb-4 text-lg px-6 py-2 bg-gradient-steel text-white shadow-steel">
               🚀 Proposed Solution
             </Badge>
-            <h2 className="text-4xl font-bold mb-4">RakeOptima Features</h2>
+            <h2 className="text-4xl font-bold mb-4">SAIL Sahayak Features</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Comprehensive AI-driven optimization for every aspect of your logistics operations
+              Comprehensive AI-driven optimization transforming SAIL's logistics operations with intelligent automation and predictive insights
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -400,12 +400,12 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4 text-center">
-          <div className="text-2xl font-bold mb-4">RakeOptima</div>
+          <div className="text-2xl font-bold mb-4">SAIL Sahayak</div>
           <p className="text-lg mb-6">Built for SAIL Hackathon 2024</p>
           <div className="flex justify-center items-center space-x-8">
-            <div className="text-sm opacity-80">Team: AI Logistics Solutions</div>
+            <div className="text-sm opacity-80">Team: SAIL Innovation Labs</div>
             <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-primary">
-              GitHub Repository
+              View Documentation
             </Button>
           </div>
         </div>
