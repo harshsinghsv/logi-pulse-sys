@@ -364,7 +364,7 @@ const LandingPage = () => {
           >
             <h2 className="text-4xl font-bold mb-4">Proven Impact</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Measurable improvements in key performance indicators
+              Quantified benefits from AI-powered optimization across SAIL's logistics network
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -389,6 +389,9 @@ const LandingPage = () => {
                   </motion.div>
                   <div className="text-lg font-medium text-muted-foreground">
                     {kpi.label}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    vs. manual operations
                   </div>
                 </Card>
               </motion.div>
