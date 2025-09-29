@@ -4,21 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  LayoutDashboard,
-  ListTodo,
-  ShoppingCart,
-  Warehouse,
-  Map,
-  Wand2,
-  BarChart3,
-  Bell,
-  Search,
-  User,
-  Menu,
-  X,
-  Home
-} from "lucide-react";
+import { LayoutDashboard, ListTodo, ShoppingCart, Warehouse, Map, Wand as Wand2, ChartBar as BarChart3, Bell, Search, User, Menu, X, Chrome as Home } from "lucide-react";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },

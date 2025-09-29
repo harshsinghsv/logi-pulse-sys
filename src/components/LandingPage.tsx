@@ -2,24 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Clock, 
-  Box, 
-  AlertTriangle, 
-  Target,
-  Brain,
-  MapPin,
-  Truck,
-  BarChart3,
-  Eye,
-  Zap,
-  ArrowRight,
-  CheckCircle,
-  TrendingUp,
-  DollarSign,
-  Timer,
-  Award
-} from "lucide-react";
+import { Clock, Box, TriangleAlert as AlertTriangle, Target, Brain, MapPin, Truck, ChartBar as BarChart3, Eye, Zap, ArrowRight, CircleCheck as CheckCircle, TrendingUp, DollarSign, Timer, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBackground from "@/assets/hero-background.jpg";
 
@@ -279,12 +262,12 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4 text-lg px-6 py-2 bg-gradient-steel text-white shadow-steel">
+            <Badge className="mb-4 text-lg px-6 py-2 bg-primary text-primary-foreground">
               🚀 Proposed Solution
             </Badge>
-            <h2 className="text-4xl font-bold mb-4">SAIL Sahayak Features</h2>
+            <h2 className="text-4xl font-bold mb-4">RakeOptima Features</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Comprehensive AI-driven optimization transforming SAIL's logistics operations with intelligent automation and predictive insights
+              Comprehensive AI-driven optimization for every aspect of your logistics operations
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -364,7 +347,7 @@ const LandingPage = () => {
           >
             <h2 className="text-4xl font-bold mb-4">Proven Impact</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Quantified benefits from AI-powered optimization across SAIL's logistics network
+              Measurable improvements in key performance indicators
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -389,9 +372,6 @@ const LandingPage = () => {
                   </motion.div>
                   <div className="text-lg font-medium text-muted-foreground">
                     {kpi.label}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    vs. manual operations
                   </div>
                 </Card>
               </motion.div>
