@@ -5,7 +5,16 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, TrendingDown, Package, Clock, TriangleAlert as AlertTriangle, Brain as Train, Calendar, DollarSign } from "lucide-react";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Package, 
+  Clock, 
+  AlertTriangle, 
+  Train,
+  Calendar,
+  DollarSign
+} from "lucide-react";
 
 interface KPIData {
   total_orders_today: number;
