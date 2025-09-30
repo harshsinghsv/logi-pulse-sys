@@ -11,7 +11,8 @@ import OrderManagement from "./components/Dashboard/OrderManagement";
 import Resources from "./components/Dashboard/Resources";
 import LiveTracking from "./components/Dashboard/LiveTracking";
 import Simulations from "./components/Dashboard/Simulations";
-import Index from "./pages/Index";
+import AnalyticsReports from "./components/Dashboard/AnalyticsReports";
+import Alerts from "./components/Dashboard/Alerts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,8 +32,8 @@ const App = () => (
             <Route path="resources" element={<Resources />} />
             <Route path="tracking" element={<LiveTracking />} />
             <Route path="simulations" element={<Simulations />} />
-            <Route path="analytics" element={<Index />} />
-            <Route path="alerts" element={<Index />} />
+            <Route path="analytics" element={<AnalyticsReports />} />
+            <Route path="alerts" element={<Alerts />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

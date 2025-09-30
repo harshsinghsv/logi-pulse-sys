@@ -219,7 +219,7 @@ const LandingPage = () => {
               size="lg" 
               variant="outline" 
               onClick={() => scrollToSection('problem')}
-              className="border-white text-white hover:bg-white hover:text-primary"
+              className="border-2 border-white/90 text-white hover:bg-white hover:text-primary focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
             >
               Learn More
             </Button>
