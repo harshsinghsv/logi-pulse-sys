@@ -47,19 +47,19 @@ const Simulations = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSimulations = async () => {
+    const loadSimulations = async () => {
       try {
-        const response = await fetch('/src/data/simulations.json');
-        const data = await response.json();
+        const module = await import('@/data/simulations.json');
+        const data = module.default as Simulation[];
         setSimulations(data);
       } catch (error) {
-        console.error('Error fetching simulations:', error);
+        console.error('Error loading simulations:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSimulations();
+    loadSimulations();
   }, []);
 
   const handleRunSimulation = () => {

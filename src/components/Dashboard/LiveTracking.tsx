@@ -38,22 +38,22 @@ const LiveTracking = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrackingData = async () => {
+    const loadTrackingData = async () => {
       try {
-        const response = await fetch('/src/data/tracking.json');
-        const data = await response.json();
+        const module = await import('@/data/tracking.json');
+        const data = module.default as TrackingItem[];
         setTrackingData(data);
         if (data.length > 0) {
           setSelectedItem(data[0]);
         }
       } catch (error) {
-        console.error('Error fetching tracking data:', error);
+        console.error('Error loading tracking data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTrackingData();
+    loadTrackingData();
   }, []);
 
   const getStatusBadge = (status: string) => {

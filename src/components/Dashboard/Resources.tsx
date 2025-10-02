@@ -53,26 +53,24 @@ const Resources = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       try {
-        const [stockyardsResponse, resourcesResponse] = await Promise.all([
-          fetch('/src/data/stockyards.json'),
-          fetch('/src/data/resources.json')
+        const [stockyardsModule, resourcesModule] = await Promise.all([
+          import('@/data/stockyards.json'),
+          import('@/data/resources.json')
         ]);
-        
-        const stockyardsData = await stockyardsResponse.json();
-        const resourcesData = await resourcesResponse.json();
-        
+        const stockyardsData = stockyardsModule.default as Stockyard[];
+        const resourcesData = resourcesModule.default as ResourcesData;
         setStockyards(stockyardsData);
         setResources(resourcesData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error loading resources data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    loadData();
   }, []);
 
   const getStatusBadge = (status: string) => {

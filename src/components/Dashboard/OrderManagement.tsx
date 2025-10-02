@@ -44,20 +44,20 @@ const OrderManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const loadOrders = async () => {
       try {
-        const response = await fetch('/src/data/orders.json');
-        const data = await response.json();
+        const module = await import('@/data/orders.json');
+        const data = module.default as Order[];
         setOrders(data);
         setFilteredOrders(data);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Error loading orders:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    loadOrders();
   }, []);
 
   useEffect(() => {

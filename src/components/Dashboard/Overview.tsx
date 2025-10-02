@@ -35,19 +35,19 @@ const Overview = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchKPIData = async () => {
+    const loadKPIData = async () => {
       try {
-        const response = await fetch('/src/data/kpis.json');
-        const data = await response.json();
-        setKpiData(data);
+        const module = await import('@/data/kpis.json');
+        const data = module.default;
+        setKpiData(data as KPIData);
       } catch (error) {
-        console.error('Error fetching KPI data:', error);
+        console.error('Error loading KPI data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchKPIData();
+    loadKPIData();
   }, []);
 
   if (loading) {
