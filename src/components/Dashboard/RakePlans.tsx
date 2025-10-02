@@ -57,27 +57,27 @@ const RakePlans = () => {
   const [selectedRake, setSelectedRake] = useState<RakePlan | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       try {
-        const [plansResponse, ordersResponse] = await Promise.all([
-          fetch('/src/data/plans.json'),
-          fetch('/src/data/orders.json')
+        const [plansModule, ordersModule] = await Promise.all([
+          import('@/data/plans.json'),
+          import('@/data/orders.json')
         ]);
         
-        const plansData = await plansResponse.json();
-        const ordersData = await ordersResponse.json();
+        const plansData = plansModule.default as RakePlan[];
+        const ordersData = ordersModule.default as Order[];
         
         setPlans(plansData);
         setFilteredPlans(plansData);
         setOrders(ordersData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error loading rake plans data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    loadData();
   }, []);
 
   useEffect(() => {

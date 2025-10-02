@@ -13,7 +13,10 @@ import {
   AlertTriangle, 
   Train,
   Calendar,
-  DollarSign
+  DollarSign,
+  Brain,
+  CheckCircle,
+  Zap
 } from "lucide-react";
 
 interface KPIData {
@@ -389,6 +392,93 @@ const Overview = () => {
                   />
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+      {/* AI Predictive Insights Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.2 }}
+      >
+        <Card className="shadow-card border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-primary" />
+              Dual-Brain AI Engine Insights
+            </CardTitle>
+            <CardDescription>
+              Predictive + Optimization Intelligence
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Predictive Engine Output */}
+              <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-5 h-5 text-warning" />
+                  <h4 className="font-semibold text-warning">Predictive Engine</h4>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Forecasted Delays:</span>
+                    <Badge variant="outline" className="bg-warning/20 text-warning-foreground">3 routes at risk</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Predicted Cost Impact:</span>
+                    <span className="font-medium">₹2.1L additional</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Demand Forecast (7d):</span>
+                    <span className="font-medium">+12% volume</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Accuracy Score:</span>
+                    <span className="font-medium text-success">94.2%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Optimization Engine Output */}
+              <div className="p-4 bg-success/10 rounded-lg border border-success/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <h4 className="font-semibold text-success">Optimization Engine</h4>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cost Reduction Today:</span>
+                    <span className="font-medium text-success">₹4.8L saved</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rake Utilization:</span>
+                    <Badge variant="outline" className="bg-success/20 text-success-foreground">98.2% avg</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Routes Optimized:</span>
+                    <span className="font-medium">14 rakes</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Demurrage Avoided:</span>
+                    <span className="font-medium text-success">₹1.2L</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Recommendation */}
+            <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+              <div className="flex items-start gap-3">
+                <Zap className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="text-sm font-medium text-primary mb-2">Real-Time AI Recommendation</div>
+                  <p className="text-sm text-foreground">
+                    Based on predictive analysis, consider allocating Rake BKSC-067 to high-priority orders from Bokaro to avoid predicted 4-hour delay at Gaya Junction. 
+                    Estimated savings: ₹85,000 in demurrage costs.
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

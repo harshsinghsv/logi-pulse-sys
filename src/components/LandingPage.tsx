@@ -18,7 +18,8 @@ import {
   TrendingUp,
   DollarSign,
   Timer,
-  Award
+  Award,
+  Leaf
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBackground from "@/assets/hero-background.jpg";
@@ -63,61 +64,61 @@ const LandingPage = () => {
   const solutionFeatures = [
     {
       icon: Brain,
-      title: "AI-Powered Rake Formation",
-      description: "Intelligent order clubbing with machine learning algorithms to achieve 98%+ wagon utilization and minimize empty runs."
+      title: "Dual-Brain AI Engine",
+      description: "Combines a Predictive Engine (forecasting delays & costs) with an Optimization Engine (finding the mathematically best plan) to eliminate under-utilized rakes and drastically cut demurrage costs."
     },
     {
-      icon: MapPin,
-      title: "Stockyard & Loading Point Optimization",
-      description: "Real-time analysis of stockyard capacity and loading point availability to minimize demurrage costs."
+      icon: BarChart3,
+      title: "What-If Simulation",
+      description: "Digital twin of your logistics network. Simulate disruptions like wagon shortages or siding closures to see AI's recommended pivot plan before a crisis hits, turning your team into proactive strategists."
     },
     {
       icon: Truck,
-      title: "Dynamic Mode Selection (Rail vs. Road)",
-      description: "Smart modal choice optimization balancing cost, time, and environmental impact for each shipment."
+      title: "Dynamic Rail vs. Road Optimization",
+      description: "Intelligently decides the best transport mode, automatically suggesting trucks for high-priority orders to meet critical deadlines, balancing cost against speed across your entire transport network."
+    },
+    {
+      icon: Leaf,
+      title: "Sustainability & ESG Reporting",
+      description: "Tracks carbon footprint of every dispatch plan, favors fuller rakes and efficient routes, providing quantifiable data for sustainability reports and enhancing your ESG profile."
     },
     {
       icon: Target,
       title: "AI-Based Order Prioritization",
-      description: "Advanced priority scoring considering customer importance, deadline urgency, and strategic value."
+      description: "Advanced priority scoring considering customer importance, deadline urgency, and strategic value to ensure the most profitable orders are prioritized."
     },
     {
       icon: Eye,
       title: "Real-Time Tracking & Visibility",
-      description: "Live GPS tracking with predictive ETA updates and automated exception alerts for proactive management."
-    },
-    {
-      icon: Zap,
-      title: "Advanced Analytics & Simulation",
-      description: "What-if scenario modeling, carbon footprint optimization, and predictive maintenance scheduling."
+      description: "Live GPS tracking with predictive ETA updates and automated exception alerts for proactive management across your entire logistics network."
     }
   ];
 
   const workflowSteps = [
     {
       step: "1",
-      title: "Data Ingest",
-      description: "Real-time integration with ERP systems, IoT sensors, and external logistics partners for comprehensive data collection."
+      title: "Data Ingestion & Integration Layer",
+      description: "Single source of truth pulling live data from ERP/SAP, inventory databases, and historical data lake. Stores all dispatch records, transit times, delays, and costs for AI learning."
     },
     {
-      step: "2", 
-      title: "AI Optimizer",
-      description: "Advanced machine learning algorithms process multiple constraints including capacity, priority, cost, and environmental factors."
+      step: "2a", 
+      title: "Predictive Engine (ML)",
+      description: "Analyzes historical patterns using Scikit-learn/TensorFlow to predict delay costs, travel times (ETA), and demand forecasts - making the system more accurate over time."
+    },
+    {
+      step: "2b",
+      title: "Optimization Engine (Decision-Making)",
+      description: "Uses Google OR-Tools to solve the core logistics puzzle: minimize total cost while obeying all business rules. Decides which orders go in which rake, from which stockyard, in what sequence."
     },
     {
       step: "3",
-      title: "Daily Plan Generation",
-      description: "Automated generation of optimized rake formation plans with detailed loading sequences and resource allocation."
+      title: "Application & Decision Support Layer", 
+      description: "Backend API (Flask/FastAPI) exposes AI functionality. Business logic formats the optimal plan into actionable tables and summaries for planners."
     },
     {
       step: "4",
-      title: "Simulation & Validation", 
-      description: "Interactive scenario modeling allows planners to test different strategies and validate plans before execution."
-    },
-    {
-      step: "5",
-      title: "Dashboard Visualization",
-      description: "Intuitive control tower interface with real-time KPIs, alerts, and actionable insights for decision makers."
+      title: "Presentation Layer & Execution",
+      description: "React-based planner dashboard shows KPIs and generated plans. Real-time GPS/IoT tracks actual results, feeding back into the system for continuous AI improvement."
     }
   ];
 
@@ -192,7 +193,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl md:text-6xl font-bold mb-6"
           >
-            SAIL Sahayak: AI-Powered Logistics Control Tower
+            SAIL Sahayak: Your AI-Powered Logistics Command Center
           </motion.h1>
           <motion.p 
             initial={{ y: 50, opacity: 0 }}
@@ -200,7 +201,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl mb-8 text-gray-100 max-w-4xl mx-auto"
           >
-            Transform SAIL's logistics operations with intelligent rake formation, real-time tracking, and predictive optimization for maximum efficiency.
+            An AI/ML-based Decision Support System that transforms complex, manual rake formation into a dynamic, optimized, and automated workflow. Smarter, faster, and more cost-effective.
           </motion.p>
           <motion.div 
             initial={{ y: 50, opacity: 0 }}
@@ -280,11 +281,11 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <Badge className="mb-4 text-lg px-6 py-2 bg-primary text-primary-foreground">
-              🚀 Proposed Solution
+              🚀 Key Innovations
             </Badge>
-            <h2 className="text-4xl font-bold mb-4">RakeOptima Features</h2>
+            <h2 className="text-4xl font-bold mb-4">How We Deliver Value</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Comprehensive AI-driven optimization for every aspect of your logistics operations
+              Four core innovations that transform logistics operations and drive measurable ROI
             </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -324,9 +325,9 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4">How It Works</h2>
+            <h2 className="text-4xl font-bold mb-4">System Architecture</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Five simple steps to optimize your entire logistics workflow
+              Clear, unidirectional data flow from raw data to optimized action with continuous learning feedback loop
             </p>
           </motion.div>
           <div className="max-w-4xl mx-auto">
@@ -401,7 +402,7 @@ const LandingPage = () => {
       <footer className="bg-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="text-2xl font-bold mb-4">SAIL Sahayak</div>
-          <p className="text-lg mb-6">Built for SAIL Hackathon 2024</p>
+          <p className="text-lg mb-6 opacity-90">AI-Powered Logistics Command Center</p>
           <div className="flex justify-center items-center space-x-8">
             <div className="text-sm opacity-80">Team: SAIL Innovation Labs</div>
             <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-primary">
