@@ -71,11 +71,14 @@ export default {
         "gradient-steel": "var(--gradient-steel)",
         "gradient-hero": "var(--gradient-hero)", 
         "gradient-card": "var(--gradient-card)",
+        "gradient-premium": "var(--gradient-premium)",
+        "gradient-subtle": "var(--gradient-subtle)",
       },
       boxShadow: {
         "steel": "var(--shadow-steel)",
         "card": "var(--shadow-card)",
         "glow": "var(--shadow-glow)",
+        "premium": "var(--shadow-premium)",
       },
       borderRadius: {
         lg: "var(--radius)",

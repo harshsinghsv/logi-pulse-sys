@@ -6,58 +6,61 @@
 
 @layer base {
   :root {
-    /* Core Industrial Palette */
-    --background: 210 15% 98%;
-    --foreground: 210 15% 8%;
+    /* Modern Premium Palette */
+    --background: 220 20% 98%;
+    --foreground: 220 15% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 15% 8%;
+    --card-foreground: 220 15% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 15% 8%;
+    --popover-foreground: 220 15% 12%;
 
-    /* Steel Blue Primary */
-    --primary: 210 85% 45%;
+    /* Vibrant Steel Blue Primary */
+    --primary: 215 88% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 210 85% 65%;
+    --primary-glow: 215 88% 68%;
 
-    /* Industrial Gray Secondary */
-    --secondary: 210 10% 95%;
-    --secondary-foreground: 210 15% 15%;
+    /* Sophisticated Secondary */
+    --secondary: 220 15% 96%;
+    --secondary-foreground: 220 15% 20%;
 
-    --muted: 210 10% 96%;
-    --muted-foreground: 210 5% 45%;
+    --muted: 220 12% 95%;
+    --muted-foreground: 220 8% 48%;
 
-    /* Steel Accent */
-    --accent: 210 15% 92%;
-    --accent-foreground: 210 15% 15%;
+    /* Modern Accent */
+    --accent: 215 88% 95%;
+    --accent-foreground: 215 88% 30%;
 
     /* Amber Alert */
-    --warning: 35 90% 55%;
+    --warning: 38 92% 58%;
     --warning-foreground: 0 0% 100%;
 
     /* Success Green */
-    --success: 145 65% 45%;
+    --success: 152 69% 48%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 88%;
-    --input: 210 15% 88%;
-    --ring: 210 85% 45%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 215 88% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    /* Industrial Gradients */
-    --gradient-steel: linear-gradient(135deg, hsl(210 85% 45%), hsl(210 70% 35%));
-    --gradient-hero: linear-gradient(135deg, hsl(210 85% 45%) 0%, hsl(210 70% 35%) 50%, hsl(210 60% 25%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 15% 98%) 100%);
+    /* Premium Gradients */
+    --gradient-steel: linear-gradient(135deg, hsl(215 88% 52%) 0%, hsl(215 75% 42%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(215 88% 52%) 0%, hsl(215 75% 42%) 50%, hsl(215 65% 35%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
+    --gradient-premium: linear-gradient(135deg, hsl(215 88% 52%) 0%, hsl(258 90% 66%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(220 20% 98%) 0%, hsl(0 0% 100%) 100%);
     
-    /* Shadows */
-    --shadow-steel: 0 10px 40px -10px hsl(210 85% 45% / 0.3);
-    --shadow-card: 0 4px 20px -4px hsl(210 15% 8% / 0.1);
-    --shadow-glow: 0 0 30px hsl(210 85% 65% / 0.4);
+    /* Enhanced Shadows */
+    --shadow-steel: 0 20px 60px -15px hsl(215 88% 52% / 0.35);
+    --shadow-card: 0 4px 24px -4px hsl(220 15% 12% / 0.08);
+    --shadow-glow: 0 0 40px hsl(215 88% 68% / 0.5);
+    --shadow-premium: 0 25px 80px -20px hsl(215 88% 52% / 0.4);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
