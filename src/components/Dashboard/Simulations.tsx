@@ -1,415 +1,891 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "@/hooks/use-toast";
-import { 
-  Play, 
-  RefreshCw, 
-  TrendingUp, 
-  TrendingDown,
-  DollarSign,
-  Clock,
-  Target,
-  Zap,
-  AlertTriangle,
-  CheckCircle,
-  ArrowRight,
-  BarChart3
-} from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Play, Pause, RotateCcw, Zap } from 'lucide-react';
 
-interface Simulation {
-  scenario_name: string;
-  description: string;
-  before_kpis: {
-    cost: number;
-    utilization: number;
-    on_time: number;
-    delivery_time: number;
-  };
-  after_kpis: {
-    cost: number;
-    utilization: number;
-    on_time: number;
-    delivery_time: number;
-  };
-  recommendations: string[];
+// ==================== ACO ENGINE ====================
+class Config {
+  static NUM_WAGONS = 50;
+  static NUM_ITERATIONS = 200;
+  static ALPHA = 1.0;
+  static BETA = 2.5;
+  static EVAPORATION_RATE = 0.15;
+  static Q = 100;
 }
 
-const Simulations = () => {
-  const [simulations, setSimulations] = useState<Simulation[]>([]);
-  const [selectedScenario, setSelectedScenario] = useState<string>("");
-  const [currentSimulation, setCurrentSimulation] = useState<Simulation | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [loading, setLoading] = useState(true);
+class Wagon {
+  constructor(startNode, endNode, nodes) {
+    this.startNode = startNode;
+    this.endNode = endNode;
+    this.currentNode = startNode;
+    this.pathTaken = [startNode];
+    this.pathCost = 0;
+    this.nodes = nodes;
+  }
+
+  chooseNextNode(pheromoneMap, costMap) {
+    const visited = new Set(this.pathTaken);
+    const neighbors = [];
+    
+    for (let i = 0; i < this.nodes.length; i++) {
+      if (!visited.has(i) && costMap[this.currentNode][i] !== Infinity) {
+        neighbors.push(i);
+      }
+    }
+
+    if (neighbors.length === 0) return null;
+
+    const probabilities = neighbors.map(neighbor => {
+      const pheromone = Math.pow(pheromoneMap[this.currentNode][neighbor], Config.ALPHA);
+      const heuristic = Math.pow(1 / costMap[this.currentNode][neighbor], Config.BETA);
+      return pheromone * heuristic;
+    });
+
+    const sum = probabilities.reduce((a, b) => a + b, 0);
+    const normalizedProbs = probabilities.map(p => p / sum);
+
+    const rand = Math.random();
+    let cumulative = 0;
+    for (let i = 0; i < neighbors.length; i++) {
+      cumulative += normalizedProbs[i];
+      if (rand <= cumulative) {
+        return neighbors[i];
+      }
+    }
+    return neighbors[neighbors.length - 1];
+  }
+
+  findPath(pheromoneMap, costMap) {
+    while (this.currentNode !== this.endNode) {
+      const nextNode = this.chooseNextNode(pheromoneMap, costMap);
+      if (nextNode === null) return false;
+      
+      this.pathCost += costMap[this.currentNode][nextNode];
+      this.currentNode = nextNode;
+      this.pathTaken.push(nextNode);
+    }
+    return true;
+  }
+}
+
+class LogisticsNetwork {
+  constructor() {
+    this.nodes = [
+      'Bokaro Steel', 'Main Yard', 'Junction Alpha', 'Coal Feeder',
+      'Maintenance', 'Junction Bravo', 'Customer A', 'Stockyard Gamma',
+      'Scrapyard', 'Customer B'
+    ];
+    
+    this.costMap = this.initializeCostMap();
+    this.originalCostMap = JSON.parse(JSON.stringify(this.costMap));
+    this.pheromoneMap = this.initializePheromoneMap();
+    this.bestPath = null;
+    this.bestCost = Infinity;
+  }
+
+  initializeCostMap() {
+    const n = this.nodes.length;
+    const costs = Array(n).fill(null).map(() => Array(n).fill(Infinity));
+    
+    const edges = [
+      [0, 1, 15], [1, 2, 20], [1, 3, 18], [2, 3, 12], [2, 5, 22],
+      [3, 4, 25], [4, 5, 15], [5, 6, 18], [1, 7, 30], [7, 8, 20],
+      [8, 6, 25], [5, 9, 28], [3, 5, 20], [7, 6, 35], [4, 8, 22],
+      [2, 4, 30], [0, 7, 40], [3, 7, 28], [4, 9, 30], [6, 9, 20]
+    ];
+    
+    edges.forEach(([i, j, cost]) => {
+      costs[i][j] = cost;
+      costs[j][i] = cost;
+    });
+    
+    for (let i = 0; i < n; i++) costs[i][i] = 0;
+    return costs;
+  }
+
+  initializePheromoneMap() {
+    const n = this.nodes.length;
+    return Array(n).fill(null).map(() => Array(n).fill(1.0));
+  }
+
+  updatePheromones(paths) {
+    const n = this.nodes.length;
+    
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        this.pheromoneMap[i][j] *= (1 - Config.EVAPORATION_RATE);
+        if (this.pheromoneMap[i][j] < 0.01) this.pheromoneMap[i][j] = 0.01;
+      }
+    }
+    
+    paths.forEach(({ path, cost }) => {
+      const deposit = Config.Q / cost;
+      for (let i = 0; i < path.length - 1; i++) {
+        const from = path[i];
+        const to = path[i + 1];
+        this.pheromoneMap[from][to] += deposit;
+        this.pheromoneMap[to][from] += deposit;
+      }
+    });
+  }
+
+  runIteration(startNode, endNode) {
+    const wagons = [];
+    for (let i = 0; i < Config.NUM_WAGONS; i++) {
+      wagons.push(new Wagon(startNode, endNode, this.nodes));
+    }
+
+    const completedPaths = [];
+    wagons.forEach(wagon => {
+      if (wagon.findPath(this.pheromoneMap, this.costMap)) {
+        completedPaths.push({ path: wagon.pathTaken, cost: wagon.pathCost });
+        
+        if (wagon.pathCost < this.bestCost) {
+          this.bestCost = wagon.pathCost;
+          this.bestPath = wagon.pathTaken;
+        }
+      }
+    });
+
+    this.updatePheromones(completedPaths);
+    return { bestPath: this.bestPath, bestCost: this.bestCost };
+  }
+
+  introduceDisruption(node1Idx, node2Idx, multiplier) {
+    this.costMap[node1Idx][node2Idx] *= multiplier;
+    this.costMap[node2Idx][node1Idx] *= multiplier;
+  }
+
+  reset() {
+    this.costMap = JSON.parse(JSON.stringify(this.originalCostMap));
+    this.pheromoneMap = this.initializePheromoneMap();
+    this.bestPath = null;
+    this.bestCost = Infinity;
+  }
+}
+
+// ==================== NETWORK GRAPH ====================
+const NetworkGraph = ({ network, iteration, bestPath, startNode, endNode, isRunning }) => {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const [dimensions, setDimensions] = useState({ width: 900, height: 650 });
 
   useEffect(() => {
-    const loadSimulations = async () => {
-      try {
-        const module = await import('@/data/simulations.json');
-        const data = module.default as Simulation[];
-        setSimulations(data);
-      } catch (error) {
-        console.error('Error loading simulations:', error);
-      } finally {
-        setLoading(false);
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const containerHeight = containerRef.current.offsetHeight;
+        const aspectRatio = 900 / 650;
+        let newWidth = containerWidth - 48; // Subtract padding
+        let newHeight = newWidth / aspectRatio;
+        if (newHeight > containerHeight - 48) {
+          newHeight = containerHeight - 48;
+          newWidth = newHeight * aspectRatio;
+        }
+        newWidth = Math.min(newWidth, 900);
+        newHeight = Math.min(newHeight, 650);
+        setDimensions({ width: newWidth, height: newHeight });
       }
     };
 
-    loadSimulations();
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  const handleRunSimulation = () => {
-    if (!selectedScenario) {
-      toast({
-        title: "No Scenario Selected",
-        description: "Please select a scenario to run the simulation.",
-        variant: "destructive"
-      });
+  const positions = {
+    0: { x: 150, y: 350 },
+    1: { x: 300, y: 380 },
+    2: { x: 400, y: 250 },
+    3: { x: 380, y: 480 },
+    4: { x: 520, y: 200 },
+    5: { x: 600, y: 380 },
+    6: { x: 780, y: 280 },
+    7: { x: 580, y: 100 },
+    8: { x: 700, y: 520 },
+    9: { x: 780, y: 480 }
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = dimensions.width * dpr;
+    canvas.height = dimensions.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+    const scale = dimensions.width / 900;
+    ctx.scale(scale, scale);
+
+    let maxPheromone = 0;
+    for (let i = 0; i < network.nodes.length; i++) {
+      for (let j = i + 1; j < network.nodes.length; j++) {
+        if (network.costMap[i][j] !== Infinity) {
+          maxPheromone = Math.max(maxPheromone, network.pheromoneMap[i][j]);
+        }
+      }
+    }
+
+    for (let i = 0; i < network.nodes.length; i++) {
+      for (let j = i + 1; j < network.nodes.length; j++) {
+        if (network.costMap[i][j] !== Infinity) {
+          const pheromone = network.pheromoneMap[i][j];
+          const intensity = maxPheromone > 0 ? pheromone / maxPheromone : 0;
+
+          const isOnBestPath = bestPath && 
+            ((bestPath.includes(i) && bestPath.includes(j) && 
+              Math.abs(bestPath.indexOf(i) - bestPath.indexOf(j)) === 1));
+
+          ctx.beginPath();
+          ctx.moveTo(positions[i].x, positions[i].y);
+          ctx.lineTo(positions[j].x, positions[j].y);
+
+          if (isOnBestPath && (isRunning || iteration > 0)) {
+            const gradient = ctx.createLinearGradient(
+              positions[i].x, positions[i].y,
+              positions[j].x, positions[j].y
+            );
+            gradient.addColorStop(0, '#10b981');
+            gradient.addColorStop(1, '#34d399');
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 6 / scale;
+            ctx.setLineDash([]);
+          } else if (isRunning || iteration > 0) {
+            const width = 1 + intensity * 4;
+            const alpha = 0.2 + intensity * 0.5;
+            ctx.strokeStyle = `rgba(100, 116, 139, ${alpha})`;
+            ctx.lineWidth = width / scale;
+            ctx.setLineDash([5 / scale, 5 / scale]);
+          } else {
+            ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
+            ctx.lineWidth = 2 / scale;
+            ctx.setLineDash([]);
+          }
+
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+
+    network.nodes.forEach((node, idx) => {
+      const pos = positions[idx];
+      const isSource = idx === startNode;
+      const isDestination = idx === endNode;
+      const isHovered = hoveredNode === idx;
+      const isOnPath = bestPath && bestPath.includes(idx);
+
+      if (isSource || isDestination || isOnPath) {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, (isHovered ? 28 : 26) / scale, 0, Math.PI * 2);
+        ctx.fillStyle = isSource ? 'rgba(16, 185, 129, 0.15)' : 
+                        isDestination ? 'rgba(244, 63, 94, 0.15)' : 
+                        'rgba(100, 116, 139, 0.15)';
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, (isHovered ? 22 : 20) / scale, 0, Math.PI * 2);
+
+      if (isSource) {
+        const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 20 / scale);
+        gradient.addColorStop(0, '#34d399');
+        gradient.addColorStop(1, '#10b981');
+        ctx.fillStyle = gradient;
+      } else if (isDestination) {
+        const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 20 / scale);
+        gradient.addColorStop(0, '#fb7185');
+        gradient.addColorStop(1, '#f43f5e');
+        ctx.fillStyle = gradient;
+      } else if (isOnPath) {
+        ctx.fillStyle = '#64748b';
+      } else {
+        ctx.fillStyle = isHovered ? '#475569' : '#64748b';
+      }
+
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3 / scale;
+      ctx.stroke();
+
+      // Label box
+      ctx.font = `bold ${11 / scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      const metrics = ctx.measureText(node);
+      const textWidth = metrics.width;
+      const padding = 10 / scale;
+      const boxWidth = textWidth + padding * 2;
+      const boxHeight = 28 / scale;
+      const boxX = pos.x - boxWidth / 2;
+
+      let boxY;
+      if (idx === 0 || idx === 1 || idx === 3) {
+        boxY = pos.y + (38 / scale);
+      } else {
+        boxY = pos.y - (52 / scale);
+      }
+
+      ctx.fillStyle = isSource ? '#10b981' : isDestination ? '#f43f5e' : '#374151';
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6 / scale);
+      ctx.fill();
+
+      // Arrow
+      ctx.fillStyle = isSource ? '#10b981' : isDestination ? '#f43f5e' : '#374151';
+      ctx.beginPath();
+      if (pos.y > 400) {
+        ctx.moveTo(pos.x, pos.y + (35 / scale));
+        ctx.lineTo(pos.x - (6 / scale), pos.y + (28 / scale));
+        ctx.lineTo(pos.x + (6 / scale), pos.y + (28 / scale));
+      } else {
+        ctx.moveTo(pos.x, pos.y - (28 / scale));
+        ctx.lineTo(pos.x - (6 / scale), pos.y - (35 / scale));
+        ctx.lineTo(pos.x + (6 / scale), pos.y - (35 / scale));
+      }
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(node, pos.x, boxY + boxHeight / 2);
+    });
+
+  }, [network, iteration, bestPath, hoveredNode, startNode, endNode, isRunning, dimensions]);
+
+  const handleMouseMove = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = dimensions.width / rect.width;
+    const scaleY = dimensions.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    let found = null;
+    for (let idx in positions) {
+      const pos = positions[idx];
+      const dist = Math.sqrt((x * (900 / dimensions.width) - pos.x) ** 2 + (y * (650 / dimensions.height) - pos.y) ** 2);
+      if (dist < 25) {
+        found = parseInt(idx);
+        break;
+      }
+    }
+    setHoveredNode(found);
+  };
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#fafafa', borderRadius: '8px', padding: '24px' }}>
+      <canvas
+        ref={canvasRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredNode(null)}
+        style={{ 
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`,
+          cursor: 'crosshair',
+          display: 'block'
+        }}
+      />
+    </div>
+  );
+};
+
+// ==================== MAIN APP ====================
+const Simulations = () => {
+  const [network] = useState(() => new LogisticsNetwork());
+  const [iteration, setIteration] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [bestPath, setBestPath] = useState(null);
+  const [bestCost, setBestCost] = useState(Infinity);
+  const [startNode, setStartNode] = useState(0);
+  const [endNode, setEndNode] = useState(6);
+  const [disruptNode1, setDisruptNode1] = useState(2);
+  const [disruptNode2, setDisruptNode2] = useState(5);
+  const [alpha, setAlpha] = useState(1.0);
+  const [beta, setBeta] = useState(2.5);
+  const [evaporation, setEvaporation] = useState(0.15);
+  
+  const intervalRef = useRef(null);
+
+  const runSimulation = useCallback(() => {
+    if (iteration >= Config.NUM_ITERATIONS) {
+      setIsRunning(false);
       return;
     }
 
-    const scenario = simulations.find(s => s.scenario_name === selectedScenario);
-    if (!scenario) return;
+    Config.ALPHA = alpha;
+    Config.BETA = beta;
+    Config.EVAPORATION_RATE = evaporation;
 
-    setIsRunning(true);
-    
-    // Simulate AI processing time
-    setTimeout(() => {
-      setCurrentSimulation(scenario);
-      setIsRunning(false);
-      toast({
-        title: "Simulation Complete",
-        description: `What-if analysis for "${scenario.scenario_name}" has been completed.`,
-      });
-    }, 3000);
-  };
+    const result = network.runIteration(startNode, endNode);
+    setBestPath(result.bestPath);
+    setBestCost(result.bestCost);
+    setIteration(prev => prev + 1);
+  }, [network, iteration, startNode, endNode, alpha, beta, evaporation]);
 
-  const getMetricChange = (before: number, after: number, isPercentage = false) => {
-    const change = ((after - before) / before) * 100;
-    const isPositive = change > 0;
-    const displayValue = isPercentage 
-      ? `${Math.abs(change).toFixed(1)}%` 
-      : `${Math.abs(change).toFixed(0)}%`;
-    
-    return {
-      change: change,
-      displayValue,
-      isPositive,
-      color: isPositive ? "text-success" : "text-destructive",
-      icon: isPositive ? TrendingUp : TrendingDown
+  useEffect(() => {
+    if (isRunning) {
+      intervalRef.current = setInterval(runSimulation, 40);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
+  }, [isRunning, runSimulation]);
+
+  const handleStart = () => {
+    network.reset();
+    setBestPath(null);
+    setBestCost(Infinity);
+    setIteration(0);
+    setIsRunning(true);
   };
 
-  const getImprovementColor = (before: number, after: number, higherIsBetter = true) => {
-    const isImproved = higherIsBetter ? after > before : after < before;
-    return isImproved ? "text-success" : "text-destructive";
+  const handleReset = () => {
+    setIsRunning(false);
+    setIteration(0);
+    network.reset();
+    setBestPath(null);
+    setBestCost(Infinity);
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-32 bg-muted animate-pulse rounded-lg"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-64 bg-muted animate-pulse rounded-lg"></div>
-          <div className="h-64 bg-muted animate-pulse rounded-lg"></div>
-        </div>
-      </div>
-    );
-  }
+  const handleDisrupt = () => {
+    network.introduceDisruption(disruptNode1, disruptNode2, 4.0);
+  };
+
+  const progress = (iteration / Config.NUM_ITERATIONS) * 100;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="space-y-6"
-    >
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-2">What-If Scenario Simulator</h2>
-        <p className="text-muted-foreground">
-          Test different scenarios and see how RakeOptima adapts to optimize your logistics
-        </p>
+    <div style={{
+      minHeight: '100vh',
+      background: '#ffffff',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      overflowX: 'hidden',
+      overflowY: 'auto'
+    }}>
+      <div style={{
+        background: '#ffffff',
+        borderBottom: '1px solid #e5e7eb',
+        padding: '20px 16px'
+      }}>
+        <div style={{
+          maxWidth: '1600px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <h1 style={{
+              margin: 0,
+              fontSize: window.innerWidth > 768 ? '24px' : '20px',
+              fontWeight: 700,
+              color: '#0f172a',
+              letterSpacing: '-0.5px'
+            }}>
+              Bio-Signaling Logistics Network
+            </h1>
+            <p style={{
+              margin: '4px 0 0 0',
+              fontSize: '14px',
+              color: '#64748b',
+              display: window.innerWidth > 768 ? 'block' : 'none'
+            }}>
+              Ant Colony Optimization • Digital Pheromones • Emergent Intelligence
+            </p>
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: '12px'
+          }}>
+            <button 
+              onClick={isRunning ? () => setIsRunning(false) : handleStart}
+              style={{
+                padding: '10px 24px',
+                background: isRunning ? '#f1f5f9' : '#3b82f6',
+                color: isRunning ? '#475569' : '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              {isRunning ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Start</>}
+            </button>
+            <button 
+              onClick={handleReset}
+              style={{
+                padding: '10px 24px',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <RotateCcw size={16} /> Reset
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Simulation Controls */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5" />
-            Simulation Controls
-          </CardTitle>
-          <CardDescription>
-            Select a scenario to see how our AI optimizes under different conditions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={selectedScenario} onValueChange={setSelectedScenario}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a scenario..." />
-              </SelectTrigger>
-              <SelectContent>
-                {simulations.map((sim) => (
-                  <SelectItem key={sim.scenario_name} value={sim.scenario_name}>
-                    {sim.scenario_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={handleRunSimulation}
-              disabled={!selectedScenario || isRunning}
-              className="shadow-steel"
-            >
-              {isRunning ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Running...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Run Simulation
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={() => setCurrentSimulation(null)}>
-              Clear Results
-            </Button>
-          </div>
+      <div style={{
+        maxWidth: '1600px',
+        margin: '0 auto',
+        padding: '32px 16px',
+        display: 'grid',
+        gridTemplateColumns: '300px 1fr', // Reduced controls width to 300px
+        gap: '24px',
+        minHeight: 'calc(100vh - 120px)' // Adjust based on header height
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {selectedScenario && (
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <h4 className="font-medium mb-2">Scenario Description</h4>
-              <p className="text-sm text-muted-foreground">
-                {simulations.find(s => s.scenario_name === selectedScenario)?.description}
-              </p>
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '16px' // Reduced padding
+          }}>
+            <h3 style={{
+              margin: '0 0 12px 0', // Reduced margin
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>Route Configuration</h3>
+            
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#64748b',
+                marginBottom: '6px' // Reduced margin
+              }}>Start Node</label>
+              <select
+                value={startNode}
+                onChange={(e) => setStartNode(Number(e.target.value))}
+                disabled={isRunning}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px', // Reduced padding
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px', // Slightly smaller radius
+                  fontSize: '13px', // Reduced font size
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  cursor: isRunning ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {network.nodes.map((node, idx) => (
+                  <option key={idx} value={idx}>{node}</option>
+                ))}
+              </select>
             </div>
-          )}
 
-          {isRunning && (
-            <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-              <div className="flex items-center gap-3 mb-3">
-                <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-                <span className="font-medium text-primary">AI Processing Scenario...</span>
-              </div>
-              <Progress value={66} className="h-2" />
-              <p className="text-sm text-muted-foreground mt-2">
-                Analyzing constraints and generating optimal solutions...
-              </p>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#64748b',
+                marginBottom: '6px' // Reduced margin
+              }}>End Node</label>
+              <select
+                value={endNode}
+                onChange={(e) => setEndNode(Number(e.target.value))}
+                disabled={isRunning}
+                style={{
+                  width: '100%',
+                  padding: '8px 10px', // Reduced padding
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px', // Slightly smaller radius
+                  fontSize: '13px', // Reduced font size
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  cursor: isRunning ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {network.nodes.map((node, idx) => (
+                  <option key={idx} value={idx}>{node}</option>
+                ))}
+              </select>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Results Section */}
-      {currentSimulation && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="space-y-6"
-        >
-          {/* Scenario Header */}
-          <Card className="shadow-card border-primary/20">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-primary" />
-                    Simulation Results: {currentSimulation.scenario_name}
-                  </CardTitle>
-                  <CardDescription>{currentSimulation.description}</CardDescription>
-                </div>
-                <Badge className="bg-success/20 text-success-foreground">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Complete
-                </Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Before vs After Comparison */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Before Optimization */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                  <AlertTriangle className="w-5 h-5" />
-                  Before Optimization
-                </CardTitle>
-                <CardDescription>Performance without RakeOptima</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Total Cost</span>
-                    </div>
-                    <span className="text-lg font-bold">
-                      ₹{(currentSimulation.before_kpis.cost / 100000).toFixed(1)}L
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Utilization</span>
-                    </div>
-                    <span className="text-lg font-bold">{currentSimulation.before_kpis.utilization}%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">On-Time Delivery</span>
-                    </div>
-                    <span className="text-lg font-bold">{currentSimulation.before_kpis.on_time}%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Avg. Delivery Time</span>
-                    </div>
-                    <span className="text-lg font-bold">{currentSimulation.before_kpis.delivery_time}h</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* After Optimization */}
-            <Card className="shadow-card border-success/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-success">
-                  <CheckCircle className="w-5 h-5" />
-                  After RakeOptima
-                </CardTitle>
-                <CardDescription>Performance with AI optimization</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-success" />
-                      <span className="text-sm font-medium">Total Cost</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-success">
-                        ₹{(currentSimulation.after_kpis.cost / 100000).toFixed(1)}L
-                      </div>
-                      {(() => {
-                        const change = getMetricChange(currentSimulation.before_kpis.cost, currentSimulation.after_kpis.cost);
-                        return (
-                          <div className={`text-xs flex items-center ${change.color}`}>
-                            <change.icon className="w-3 h-3 mr-1" />
-                            {change.displayValue}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-success" />
-                      <span className="text-sm font-medium">Utilization</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-success">
-                        {currentSimulation.after_kpis.utilization}%
-                      </div>
-                      {(() => {
-                        const change = getMetricChange(currentSimulation.before_kpis.utilization, currentSimulation.after_kpis.utilization, true);
-                        return (
-                          <div className="text-xs flex items-center text-success">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            +{change.displayValue}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-success" />
-                      <span className="text-sm font-medium">On-Time Delivery</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-success">
-                        {currentSimulation.after_kpis.on_time}%
-                      </div>
-                      {(() => {
-                        const change = getMetricChange(currentSimulation.before_kpis.on_time, currentSimulation.after_kpis.on_time, true);
-                        return (
-                          <div className="text-xs flex items-center text-success">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            +{change.displayValue}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-success" />
-                      <span className="text-sm font-medium">Avg. Delivery Time</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-success">
-                        {currentSimulation.after_kpis.delivery_time}h
-                      </div>
-                      {(() => {
-                        const change = getMetricChange(currentSimulation.before_kpis.delivery_time, currentSimulation.after_kpis.delivery_time);
-                        return (
-                          <div className="text-xs flex items-center text-success">
-                            <TrendingDown className="w-3 h-3 mr-1" />
-                            -{change.displayValue}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
-          {/* AI Recommendations */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-primary" />
-                AI Recommendations
-              </CardTitle>
-              <CardDescription>
-                Intelligent suggestions to optimize performance in this scenario
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {currentSimulation.recommendations.map((rec, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg"
-                  >
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold mt-0.5">
-                      {index + 1}
-                    </div>
-                    <p className="text-sm text-foreground">{rec}</p>
-                  </motion.div>
-                ))}
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '16px' // Reduced padding
+          }}>
+            <h3 style={{
+              margin: '0 0 12px 0', // Reduced margin
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>Algorithm Parameters</h3>
+            
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 500, color: '#64748b' }}>
+                  Alpha (Pheromone)
+                </label>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                  {alpha.toFixed(1)}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-    </motion.div>
+              <input
+                type="range"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value={alpha}
+                onChange={(e) => setAlpha(Number(e.target.value))}
+                disabled={isRunning}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '12px' }}> 
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 500, color: '#64748b' }}>
+                  Beta (Heuristic)
+                </label>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                  {beta.toFixed(1)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="5"
+                step="0.1"
+                value={beta}
+                onChange={(e) => setBeta(Number(e.target.value))}
+                disabled={isRunning}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}> 
+                <label style={{ fontSize: '12px', fontWeight: 500, color: '#64748b' }}> 
+                  Evaporation Rate
+                </label>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                  {evaporation.toFixed(2)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.05"
+                max="0.5"
+                step="0.05"
+                value={evaporation}
+                onChange={(e) => setEvaporation(Number(e.target.value))}
+                disabled={isRunning}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+
+          <div style={{
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            borderRadius: '12px',
+            padding: '16px' // Reduced padding
+          }}>
+            <h3 style={{
+              margin: '0 0 8px 0', // Reduced margin
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>Network Disruption</h3>
+            <p style={{
+              margin: '0 0 12px 0', // Reduced margin
+              fontSize: '12px', // Reduced font size
+              color: '#64748b',
+              lineHeight: '1.5'
+            }}>
+              Introduce congestion to test adaptive routing
+            </p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '12px' }}> 
+              <select
+                value={disruptNode1}
+                onChange={(e) => setDisruptNode1(Number(e.target.value))}
+                style={{
+                  padding: '6px 8px', // Reduced padding
+                  border: '1px solid #fde68a',
+                  borderRadius: '6px',
+                  fontSize: '12px', // Reduced font size
+                  background: '#ffffff'
+                }}
+              >
+                {network.nodes.map((node, idx) => (
+                  <option key={idx} value={idx}>{node}</option>
+                ))}
+              </select>
+              
+              <select
+                value={disruptNode2}
+                onChange={(e) => setDisruptNode2(Number(e.target.value))}
+                style={{
+                  padding: '6px 8px', // Reduced padding
+                  border: '1px solid #fde68a',
+                  borderRadius: '6px',
+                  fontSize: '12px', // Reduced font size
+                  background: '#ffffff'
+                }}
+              >
+                {network.nodes.map((node, idx) => (
+                  <option key={idx} value={idx}>{node}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={handleDisrupt}
+              disabled={!isRunning}
+              style={{
+                width: '100%',
+                padding: '8px', // Reduced padding
+                background: isRunning ? '#fbbf24' : '#f3f4f6',
+                color: isRunning ? '#78350f' : '#9ca3af',
+                border: 'none',
+                borderRadius: '6px', // Slightly smaller radius
+                fontSize: '13px', // Reduced font size
+                fontWeight: 600,
+                cursor: isRunning ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px' // Reduced gap
+              }}
+            >
+              <Zap size={14} /> Apply Disruption (4x Cost)
+            </button>
+          </div>
+
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '16px' // Reduced padding
+          }}>
+            <h3 style={{
+              margin: '0 0 12px 0', // Reduced margin
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>Simulation Status</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}> 
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}> 
+                  Iteration
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}> 
+                  {iteration}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}> 
+                  Best Cost
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#10b981' }}> 
+                  {bestCost === Infinity ? '—' : bestCost.toFixed(1)}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              background: '#f8fafc',
+              borderRadius: '6px', // Slightly smaller radius
+              padding: '2px',
+              marginBottom: '12px' // Reduced margin
+            }}>
+              <div style={{
+                height: '6px', // Reduced height
+                background: 'linear-gradient(90deg, #06b6d4, #3b82f6)',
+                borderRadius: '4px', // Slightly smaller radius
+                width: `${progress}%`,
+                transition: 'width 0.3s'
+              }} />
+            </div>
+
+            {bestPath && (
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
+                  Optimal Route ({bestPath.length} nodes)
+                </div>
+                <div style={{
+                  padding: '10px', // Reduced padding
+                  background: '#f8fafc',
+                  borderRadius: '6px', // Slightly smaller radius
+                  fontSize: '11px', // Reduced font size
+                  color: '#475569',
+                  lineHeight: '1.4', // Reduced line height
+                  fontWeight: 500
+                }}>
+                  {bestPath.map((nodeIdx, i) => (
+                    <span key={i}>
+                      {network.nodes[nodeIdx]}
+                      {i < bestPath.length - 1 && ' → '}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{
+          background: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '650px',
+          height: '100%'
+        }}>
+          <NetworkGraph 
+            network={network}
+            iteration={iteration}
+            bestPath={bestPath}
+            startNode={startNode}
+            endNode={endNode}
+            isRunning={isRunning}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 
