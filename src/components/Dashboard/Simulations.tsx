@@ -12,7 +12,14 @@ class Config {
 }
 
 class Wagon {
-  constructor(startNode, endNode, nodes) {
+  startNode: number;
+  endNode: number;
+  currentNode: number;
+  pathTaken: number[];
+  pathCost: number;
+  nodes: string[];
+
+  constructor(startNode: number, endNode: number, nodes: string[]) {
     this.startNode = startNode;
     this.endNode = endNode;
     this.currentNode = startNode;
@@ -67,6 +74,13 @@ class Wagon {
 }
 
 class LogisticsNetwork {
+  nodes: string[];
+  costMap: number[][];
+  originalCostMap: number[][];
+  pheromoneMap: number[][];
+  bestPath: number[] | null;
+  bestCost: number;
+
   constructor() {
     this.nodes = [
       'Bokaro Steel', 'Main Yard', 'Junction Alpha', 'Coal Feeder',
