@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { db, APP_ID } from "@/lib/firebase";
+import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { optimizationAPI } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,22 +46,40 @@ const OrderManagement = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [reassigningOrders, setReassigningOrders] = useState<Set<string>>(new Set());
+  const { userId } = useAuth();
 
+  // Real-time orders listener
   useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const module = await import('@/data/orders.json');
-        const data = module.default as Order[];
-        setOrders(data);
-        setFilteredOrders(data);
-      } catch (error) {
-        console.error('Error loading orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const ordersRef = collection(db, `artifacts/${APP_ID}/public/data/orders`);
 
-    loadOrders();
+    const unsubscribe = onSnapshot(
+      ordersRef,
+      (snapshot) => {
+        const ordersData = snapshot.docs.map(doc => ({
+          ...doc.data(),
+          order_id: doc.id
+        })) as Order[];
+        setOrders(ordersData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error listening to orders:', error);
+        // Fallback to static data
+        import('@/data/orders.json')
+          .then(module => {
+            const data = module.default as Order[];
+            setOrders(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Error loading fallback orders:', err);
+            setLoading(false);
+          });
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -139,18 +161,64 @@ const OrderManagement = () => {
     );
   };
 
-  const handleReassign = (orderId: string) => {
-    toast({
-      title: "Order Reassigned",
-      description: `Order ${orderId} has been reassigned to an optimal rake.`,
-    });
+  const handleReassign = async (orderId: string) => {
+    if (!userId) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to reassign orders.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setReassigningOrders(prev => new Set(prev).add(orderId));
+
+    try {
+      // Call AI Optimization Engine
+      await optimizationAPI.reassignOrder({
+        order_id: orderId,
+        userId: userId
+      });
+
+      toast({
+        title: "AI Optimization Started",
+        description: `Order ${orderId} is being reassigned by the Optimization Engine. This may take 1-2 minutes.`,
+      });
+    } catch (error) {
+      console.error('Reassignment error:', error);
+      toast({
+        title: "Reassignment Failed",
+        description: error instanceof Error ? error.message : "Failed to reassign order",
+        variant: "destructive"
+      });
+      setReassigningOrders(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
   };
 
-  const handleForceAssign = (orderId: string) => {
-    toast({
-      title: "Force Assignment Complete",
-      description: `Order ${orderId} has been forcefully assigned to a new rake.`,
-    });
+  const handleForceAssign = async (orderId: string) => {
+    try {
+      const orderRef = doc(db, `artifacts/${APP_ID}/public/data/orders`, orderId);
+      await updateDoc(orderRef, {
+        status: "Planning",
+        assigned_rake: `RAKE-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+      });
+
+      toast({
+        title: "Force Assignment Complete",
+        description: `Order ${orderId} has been forcefully assigned to a new rake.`,
+      });
+    } catch (error) {
+      console.error('Force assign error:', error);
+      toast({
+        title: "Assignment Failed",
+        description: "Failed to force assign order",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
@@ -324,10 +392,16 @@ const OrderManagement = () => {
                       size="sm"
                       className="flex-1"
                       onClick={() => handleReassign(order.order_id)}
-                      disabled={!order.assigned_rake}
+                      disabled={!order.assigned_rake || reassigningOrders.has(order.order_id)}
                     >
-                      <Truck className="w-3 h-3 mr-1" />
-                      Reassign
+                      {reassigningOrders.has(order.order_id) ? (
+                        <>Processing...</>
+                      ) : (
+                        <>
+                          <Truck className="w-3 h-3 mr-1" />
+                          AI Reassign
+                        </>
+                      )}
                     </Button>
                     <Button
                       variant="outline"

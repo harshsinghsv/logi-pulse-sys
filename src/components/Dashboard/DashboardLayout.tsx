@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { db, APP_ID } from "@/lib/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +37,26 @@ const sidebarItems = [
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [alertCount, setAlertCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, userId, loading: authLoading } = useAuth();
+
+  // Real-time alert badge listener
+  useEffect(() => {
+    if (!userId) return;
+
+    const alertsRef = collection(db, `artifacts/${APP_ID}/users/${userId}/alerts`);
+    const q = query(alertsRef, where('status', '==', 'active'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setAlertCount(snapshot.size);
+    }, (error) => {
+      console.error('Error listening to alerts:', error);
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
 
   const getPageTitle = () => {
     const currentItem = sidebarItems.find(item => item.path === location.pathname);
@@ -220,11 +241,13 @@ const DashboardLayout = () => {
                   className="pl-10 w-64"
                 />
               </div>
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm" className="relative" onClick={() => navigate('/dashboard/alerts')}>
                 <Bell className="w-5 h-5" />
-                <Badge className="absolute -top-1 -right-1 px-1 min-w-[18px] h-5 text-xs bg-warning text-warning-foreground">
-                  3
-                </Badge>
+                {alertCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 px-1 min-w-[18px] h-5 text-xs bg-warning text-warning-foreground">
+                    {alertCount}
+                  </Badge>
+                )}
               </Button>
               <Button variant="ghost" size="sm">
                 <User className="w-5 h-5" />

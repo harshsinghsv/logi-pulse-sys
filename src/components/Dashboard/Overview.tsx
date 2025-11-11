@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -36,21 +39,50 @@ interface KPIData {
 const Overview = () => {
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { userId } = useAuth();
 
+  // Real-time KPI cache listener
   useEffect(() => {
-    const loadKPIData = async () => {
-      try {
-        const module = await import('@/data/kpis.json');
-        const data = module.default;
-        setKpiData(data as KPIData);
-      } catch (error) {
-        console.error('Error loading KPI data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const kpiCacheRef = doc(db, 'kpi_cache', 'daily_summary');
 
-    loadKPIData();
+    const unsubscribe = onSnapshot(
+      kpiCacheRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          setKpiData(docSnapshot.data() as KPIData);
+          setError(null);
+        } else {
+          console.warn('KPI cache document not found - using fallback data');
+          // Fallback to static data if Firebase not configured
+          import('@/data/kpis.json')
+            .then(module => {
+              setKpiData(module.default as KPIData);
+            })
+            .catch(err => {
+              console.error('Error loading fallback KPI data:', err);
+              setError('Failed to load KPI data');
+            });
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Error listening to KPI cache:', err);
+        // Fallback to static data on error
+        import('@/data/kpis.json')
+          .then(module => {
+            setKpiData(module.default as KPIData);
+            setLoading(false);
+          })
+          .catch(fallbackErr => {
+            console.error('Error loading fallback KPI data:', fallbackErr);
+            setError('Failed to load KPI data');
+            setLoading(false);
+          });
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
   if (loading) {
