@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -40,49 +38,48 @@ const Overview = () => {
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = useAuth();
 
   // Real-time KPI cache listener
   useEffect(() => {
-    const kpiCacheRef = doc(db, 'kpi_cache', 'daily_summary');
+    const loadKPIs = async () => {
+      const { data, error } = await supabase
+        .from('kpi_cache')
+        .select('*')
+        .eq('id', 'daily_summary')
+        .maybeSingle();
 
-    const unsubscribe = onSnapshot(
-      kpiCacheRef,
-      (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          setKpiData(docSnapshot.data() as KPIData);
-          setError(null);
-        } else {
-          console.warn('KPI cache document not found - using fallback data');
-          // Fallback to static data if Firebase not configured
-          import('@/data/kpis.json')
-            .then(module => {
-              setKpiData(module.default as KPIData);
-            })
-            .catch(err => {
-              console.error('Error loading fallback KPI data:', err);
-              setError('Failed to load KPI data');
-            });
-        }
-        setLoading(false);
-      },
-      (err) => {
-        console.error('Error listening to KPI cache:', err);
-        // Fallback to static data on error
-        import('@/data/kpis.json')
-          .then(module => {
-            setKpiData(module.default as KPIData);
-            setLoading(false);
-          })
-          .catch(fallbackErr => {
-            console.error('Error loading fallback KPI data:', fallbackErr);
-            setError('Failed to load KPI data');
-            setLoading(false);
-          });
+      if (error) {
+        console.error('Error loading KPIs:', error);
+        setError('Failed to load KPI data');
+      } else if (data) {
+        setKpiData(data as KPIData);
       }
-    );
+      setLoading(false);
+    };
 
-    return () => unsubscribe();
+    loadKPIs();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('kpi-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'kpi_cache',
+          filter: 'id=eq.daily_summary'
+        },
+        (payload) => {
+          console.log('KPI updated:', payload);
+          setKpiData(payload.new as KPIData);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {

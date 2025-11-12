@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { db, APP_ID } from "@/lib/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,22 +39,13 @@ const DashboardLayout = () => {
   const [alertCount, setAlertCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, userId, loading: authLoading } = useAuth();
+  const { userId } = useAuth();
 
   // Real-time alert badge listener
   useEffect(() => {
-    if (!userId) return;
-
-    const alertsRef = collection(db, `artifacts/${APP_ID}/users/${userId}/alerts`);
-    const q = query(alertsRef, where('status', '==', 'active'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setAlertCount(snapshot.size);
-    }, (error) => {
-      console.error('Error listening to alerts:', error);
-    });
-
-    return () => unsubscribe();
+    // For now, we'll just keep alert count at 0
+    // Can be connected to real user alerts when auth is implemented
+    setAlertCount(0);
   }, [userId]);
 
   const getPageTitle = () => {

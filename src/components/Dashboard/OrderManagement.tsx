@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
-import { db, APP_ID } from "@/lib/firebase";
-import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { supabase } from "@/integrations/supabase/client";
 import { optimizationAPI } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,39 +45,51 @@ const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [reassigningOrders, setReassigningOrders] = useState<Set<string>>(new Set());
-  const { userId } = useAuth();
 
   // Real-time orders listener
   useEffect(() => {
-    const ordersRef = collection(db, `artifacts/${APP_ID}/public/data/orders`);
+    const loadOrders = async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    const unsubscribe = onSnapshot(
-      ordersRef,
-      (snapshot) => {
-        const ordersData = snapshot.docs.map(doc => ({
-          ...doc.data(),
-          order_id: doc.id
-        })) as Order[];
-        setOrders(ordersData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error listening to orders:', error);
-        // Fallback to static data
-        import('@/data/orders.json')
-          .then(module => {
-            const data = module.default as Order[];
-            setOrders(data);
-            setLoading(false);
-          })
-          .catch(err => {
-            console.error('Error loading fallback orders:', err);
-            setLoading(false);
-          });
+      if (error) {
+        console.error('Error loading orders:', error);
+      } else {
+        setOrders(data || []);
       }
-    );
+      setLoading(false);
+    };
 
-    return () => unsubscribe();
+    loadOrders();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('Order changed:', payload);
+          if (payload.eventType === 'INSERT') {
+            setOrders(prev => [payload.new as Order, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? payload.new as Order : o));
+          } else if (payload.eventType === 'DELETE') {
+            setOrders(prev => prev.filter(o => o.id !== (payload.old as any).id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -162,22 +172,13 @@ const OrderManagement = () => {
   };
 
   const handleReassign = async (orderId: string) => {
-    if (!userId) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to reassign orders.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setReassigningOrders(prev => new Set(prev).add(orderId));
 
     try {
       // Call AI Optimization Engine
       await optimizationAPI.reassignOrder({
         order_id: orderId,
-        userId: userId
+        userId: "system"
       });
 
       toast({
@@ -201,11 +202,15 @@ const OrderManagement = () => {
 
   const handleForceAssign = async (orderId: string) => {
     try {
-      const orderRef = doc(db, `artifacts/${APP_ID}/public/data/orders`, orderId);
-      await updateDoc(orderRef, {
-        status: "Planning",
-        assigned_rake: `RAKE-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-      });
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: "Planning",
+          assigned_rake: `RAKE-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+        })
+        .eq('order_id', orderId);
+
+      if (error) throw error;
 
       toast({
         title: "Force Assignment Complete",
