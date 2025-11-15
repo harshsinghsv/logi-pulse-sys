@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 interface Order {
+  id: string;
   order_id: string;
   customer_name: string;
   product: string;
@@ -34,6 +35,10 @@ interface Order {
   status: string;
   assigned_rake: string | null;
   plant: string;
+  rake_id: string | null;
+  destination: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const OrderManagement = () => {
