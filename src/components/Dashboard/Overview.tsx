@@ -51,8 +51,9 @@ const Overview = () => {
       if (error) {
         console.error('Error loading KPIs:', error);
         setError('Failed to load KPI data');
-      } else if (data) {
-        setKpiData(data as KPIData);
+      } else if (data && data.kpi_data) {
+        // Use the JSONB kpi_data field that contains all the KPI metrics
+        setKpiData(data.kpi_data as unknown as KPIData);
       }
       setLoading(false);
     };
@@ -70,9 +71,11 @@ const Overview = () => {
           table: 'kpi_cache',
           filter: 'id=eq.daily_summary'
         },
-        (payload) => {
+        (payload: any) => {
           console.log('KPI updated:', payload);
-          setKpiData(payload.new as KPIData);
+          if (payload.new && payload.new.kpi_data) {
+            setKpiData(payload.new.kpi_data as unknown as KPIData);
+          }
         }
       )
       .subscribe();

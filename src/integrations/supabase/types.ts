@@ -75,6 +75,7 @@ export type Database = {
         Row: {
           ai_suggestion: string | null
           id: string
+          kpi_data: Json | null
           optimized_cost: number | null
           sla_at_risk_percent: number | null
           total_orders: number | null
@@ -83,6 +84,7 @@ export type Database = {
         Insert: {
           ai_suggestion?: string | null
           id: string
+          kpi_data?: Json | null
           optimized_cost?: number | null
           sla_at_risk_percent?: number | null
           total_orders?: number | null
@@ -91,6 +93,7 @@ export type Database = {
         Update: {
           ai_suggestion?: string | null
           id?: string
+          kpi_data?: Json | null
           optimized_cost?: number | null
           sla_at_risk_percent?: number | null
           total_orders?: number | null
@@ -136,10 +139,13 @@ export type Database = {
       }
       orders: {
         Row: {
+          assigned_rake: string | null
           created_at: string | null
           customer_name: string
+          deadline: string | null
           destination: string
           id: string
+          is_urgent: boolean | null
           order_id: string
           plant: string | null
           priority: string
@@ -150,10 +156,13 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assigned_rake?: string | null
           created_at?: string | null
           customer_name: string
+          deadline?: string | null
           destination: string
           id?: string
+          is_urgent?: boolean | null
           order_id: string
           plant?: string | null
           priority: string
@@ -164,10 +173,13 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assigned_rake?: string | null
           created_at?: string | null
           customer_name?: string
+          deadline?: string | null
           destination?: string
           id?: string
+          is_urgent?: boolean | null
           order_id?: string
           plant?: string | null
           priority?: string
